@@ -299,10 +299,10 @@
           var $ul;
           $('#message .metadata dd.created_at').text(_this.formatDate(message.created_at));
           $('#message .metadata dd.from').text(message.sender);
-          $('#message .metadata dd.reply_to').text(message.reply_to);
-          $('#message .metadata dd.to').text((message.mail_to || []).join(', '));
-          $('#message .metadata dd.cc').text((message.cc || []).join(', '));
-          $('#message .metadata dd.bcc').text((message.bcc || []).join(', '));
+          $('#message .metadata dd.reply_to').text(message.reply_to || '\xa0');
+          $('#message .metadata dd.to').text((message.mail_to || ['\xa0']).join(', '));
+          $('#message .metadata dd.cc').text((message.cc || ['\xa0']).join(', '));
+          $('#message .metadata dd.bcc').text((message.bcc || ['\xa0']).join(', '));
           $('#message .metadata dd.subject').text(message.subject);
           $('#message .views .tab.format').each(function(i, el) {
             var $el, format;
