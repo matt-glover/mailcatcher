@@ -12,7 +12,11 @@ module MailCatcher::Mail extend self
             CREATE TABLE message (
               id INTEGER PRIMARY KEY ASC,
               sender TEXT,
+              reply_to TEXT,
               recipients TEXT,
+              mail_to TEXT,
+              cc TEXT,
+              bcc TEXT,
               subject TEXT,
               source BLOB,
               size TEXT,
@@ -46,10 +50,13 @@ module MailCatcher::Mail extend self
   end
 
   def add_message(message)
-    @add_message_query ||= db.prepare("INSERT INTO message (sender, recipients, subject, source, type, size, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))")
+    @add_message_query ||= db.prepare("INSERT INTO message (sender, reply_to, recipients, mail_to, cc, bcc, subject, source, type, size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))")
 
     mail = Mail.new(message[:source])
-    @add_message_query.execute(message[:sender], message[:recipients].to_json, mail.subject, message[:source], mail.mime_type || 'text/plain', message[:source].length)
+    filtered_recipients = message[:recipients].map { |recipient| recipient.gsub(/[<>]/, '') }
+    bcc = filtered_recipients - (mail.to || []) - (mail.cc || [])
+
+    @add_message_query.execute(message[:sender], mail.reply_to, message[:recipients].to_json, mail.to.to_json, mail.cc.to_json, bcc.to_json, mail.subject, message[:source], mail.mime_type || 'text/plain', message[:source].length)
     message_id = db.last_insert_row_id
     parts = mail.all_parts
     parts = [mail] if parts.empty?
@@ -81,6 +88,9 @@ module MailCatcher::Mail extend self
     @messages_query.execute.map do |row|
       Hash[row.fields.zip(row)].tap do |message|
         message["recipients"] &&= ActiveSupport::JSON.decode message["recipients"]
+        message["mail_to"] &&= ActiveSupport::JSON.decode message["mail_to"]
+        message["cc"] &&= ActiveSupport::JSON.decode message["cc"]
+        message["bcc"] &&= ActiveSupport::JSON.decode message["bcc"]
       end
     end
   end
@@ -88,8 +98,12 @@ module MailCatcher::Mail extend self
   def message(id)
     @message_query ||= db.prepare "SELECT * FROM message WHERE id = ? LIMIT 1"
     row = @message_query.execute(id).next
+
     row && Hash[row.fields.zip(row)].tap do |message|
       message["recipients"] &&= ActiveSupport::JSON.decode message["recipients"]
+      message["mail_to"] &&= ActiveSupport::JSON.decode message["mail_to"]
+      message["cc"] &&= ActiveSupport::JSON.decode message["cc"]
+      message["bcc"] &&= ActiveSupport::JSON.decode message["bcc"]
     end
   end
 

@@ -83,7 +83,7 @@
       $('nav.app .quit a').live('click', function(e) {
         var message;
         e.preventDefault();
-        message = [$(this).attr("data-confirm-message"), "Are you sure you want to quit?"].join("");
+        message = [$(e.currentTarget).attr("data-confirm-message"), "Are you sure you want to quit?"].join("");
         if (confirm(message)) {
           return $.ajax({
             type: 'DELETE',
@@ -299,7 +299,10 @@
           var $ul;
           $('#message .metadata dd.created_at').text(_this.formatDate(message.created_at));
           $('#message .metadata dd.from').text(message.sender);
-          $('#message .metadata dd.to').text((message.recipients || []).join(', '));
+          $('#message .metadata dd.reply_to').text(message.reply_to);
+          $('#message .metadata dd.to').text((message.mail_to || []).join(', '));
+          $('#message .metadata dd.cc').text((message.cc || []).join(', '));
+          $('#message .metadata dd.bcc').text((message.bcc || []).join(', '));
           $('#message .metadata dd.subject').text(message.subject);
           $('#message .views .tab.format').each(function(i, el) {
             var $el, format;

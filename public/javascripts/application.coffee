@@ -48,7 +48,7 @@ class MailCatcher
 
     $('nav.app .quit a').live 'click', (e) =>
       e.preventDefault()
-      message = [$(this).attr("data-confirm-message"), "Are you sure you want to quit?"].join("")
+      message = [$(e.currentTarget).attr("data-confirm-message"), "Are you sure you want to quit?"].join("")
       if confirm message
         $.ajax
           type: 'DELETE'
@@ -209,7 +209,10 @@ class MailCatcher
       $.getJSON "/messages/#{id}.json", (message) =>
         $('#message .metadata dd.created_at').text @formatDate message.created_at
         $('#message .metadata dd.from').text message.sender
-        $('#message .metadata dd.to').text (message.recipients || []).join(', ')
+        $('#message .metadata dd.reply_to').text message.reply_to
+        $('#message .metadata dd.to').text (message.mail_to || []).join(', ')
+        $('#message .metadata dd.cc').text (message.cc || []).join(', ')
+        $('#message .metadata dd.bcc').text (message.bcc || []).join(', ')
         $('#message .metadata dd.subject').text message.subject
         $('#message .views .tab.format').each (i, el) ->
           $el = $(el)
