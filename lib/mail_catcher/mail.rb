@@ -55,6 +55,7 @@ module MailCatcher::Mail extend self
     mail = Mail.new(message[:source])
     filtered_recipients = message[:recipients].map { |recipient| recipient.gsub(/[<>]/, '') }
     bcc = filtered_recipients - (mail.to || []) - (mail.cc || [])
+    bcc = nil if bcc.empty?
 
     @add_message_query.execute(message[:sender], mail.reply_to, message[:recipients].to_json, mail.to.to_json, mail.cc.to_json, bcc.to_json, mail.subject, message[:source], mail.mime_type || 'text/plain', message[:source].length)
     message_id = db.last_insert_row_id
